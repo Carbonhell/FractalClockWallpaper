@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Fractal clock wallpaper</title>
+    <style>
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body style="margin: 0;">
+<canvas id="canvas_id" style="left: 0;"></canvas>
+<script src="pkg/fractal_wallpaper.js"></script>
+<script>
+    let {initialize_app, FractalClockSettings} = wasm_bindgen;
+    let clock;
+
+    async function run() {
+        const wasmBase64 = "{WASM_BASE64}";
+        let base64tobuffer = (base64) => {
+            let binary_string = window.atob(base64);
+            let len = binary_string.length;
+            let bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        await wasm_bindgen(base64tobuffer(wasmBase64));
+
+        clock = initialize_app();
+        window.wallpaperPropertyListener = {
+            applyUserProperties: function (p) {
+                console.log("Applying properties: ", p);
+                let settings = FractalClockSettings.new(
+                    p.zoom?.value,
+                    p.start_line_width?.value,
+                    p.depth?.value,
+                    p.length_factor?.value,
+                    p.luminance_factor?.value,
+                    p.width_factor?.value);
+                clock.import_settings(settings);
+            },
+        };
+
+        clock.start('canvas_id');
+    }
+
+    run();
+</script>
+</body>
+</html>

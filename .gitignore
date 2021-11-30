@@ -1,0 +1,5 @@
+/target
+index.html
+*.wasm
+Cargo.lock
+.idea

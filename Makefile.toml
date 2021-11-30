@@ -1,0 +1,26 @@
+[tasks.build]
+command = "wasm-pack"
+install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
+args = ["build", "--target", "no-modules"]
+
+[tasks.opt]
+script = "wasm-opt -O3 -o fractal_wallpaper_opt.wasm pkg/fractal_wallpaper_bg.wasm"
+
+[tasks.build-opt]
+dependencies = ["build", "opt"]
+run_task = "python"
+
+[tasks.python]
+script_runner = "python"
+script_extension = "py"
+script = '''
+import base64
+
+wasm_marker = "{WASM_BASE64}"
+with open("fractal_wallpaper_opt.wasm", "rb") as wasm_file, open("index_template.html", "r") as html_template, open("index.html", "w") as html_result:
+    encoded_wasm_file = base64.b64encode(wasm_file.read())
+    for line in html_template:
+        if wasm_marker in line:
+            line = line.replace(wasm_marker, encoded_wasm_file.decode("utf-8"))
+        html_result.write(line)
+'''
